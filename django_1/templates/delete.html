@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load my_tags %}
+{% block head %}
+    <style>
+        ul li{
+            list-style: square;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <p>你确定要删除{{ verbose_name }} "{{ model }}"?所有相关的数据都会被删除:</p>
+    <h2>Objects</h2>
+    {% display_obj_related models %}
+    <form action="" method="post">
+        <input type="submit" value="确定删除" class="btn btn-danger">
+         {% for model in models %}
+             <input type="hidden" value="{{ model.id }}">
+         {% endfor %}
+        <a href="{% url 'model_manage' app_name class_name %}" class="btn btn-default">回到编辑页面</a>
+    </form>
+{% endblock %}

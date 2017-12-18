@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load my_tags %}
+{% block head %}
+    <style>
+      .clear_underline { text-decoration: none;
+      }
+  </style>
+{% endblock %}
+{% block content %}
+        <div class="row">
+            <div class="col-md-7">
+                <h2>网站管理</h2>
+                {% for app,models in app_dict.items %}
+                <div style="background-color: #5bc0de;font-size: 25px;color:whitesmoke;">{{ app }}</div>
+                <table class="table table-hover">
+                    {% for model,model_obj in models.items %}
+                    <tbody>
+                        <tr>
+                            <td><a href="{% bulid_href_to_model request model_obj %}" >{% bulid_obj_meta model_obj.model %}</a></td>
+                            <td><a href="{% url 'model_add' app model %}" ><span class="glyphicon glyphicon-plus" style="color:yellowgreen"></span>&emsp;Add</a></td>
+                            <td><a href="{% url 'model_manage' app model %}" ><span class="glyphicon glyphicon-pencil" style="color:orange"></span>&emsp;Change</a></td>
+                        </tr>
+                    </tbody>
+                    {% endfor %}
+                </table>
+                {% endfor %}
+            </div>
+            <div class="col-md-5">
+                hello
+            </div>
+        </div>
+{% endblock %}

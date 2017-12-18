@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load my_tags %}
+{% block  head %}
+    <style>
+        .select_option{
+            height: 240px!important;
+            width: 160px!important;
+        }
+        .active{
+            background-color: #447e9b!important;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    {% for error,msg in errors.items %}
+        {{ error }}
+        {{ msg }}
+    {% endfor %}
+    <div style="padding: 15px;">
+    <h1 style="margin-bottom: 15px;color: grey;">{{ do }} {% bulid_obj_meta model_admin %}</h1>
+    <form class="form-horizontal" action="" method="post" onsubmit="return upLoadData(this)">
+      {% csrf_token %}
+      {% for form_field in forms %}
+      <div class="form-group">
+        <label  class="col-sm-2">{{ form_field.label }}:</label>
+        <div class="col-sm-3">
+            {% if form_field.name in model_admin.filter_horizontal %}
+                {% bulid_m2m model_admin form_field nid as m2m_objs %}
+                <div class="col-md-5" style="padding: 0px;">
+                    <select multiple class="select_option" tag="{{ form_field.name }}Choose" onfocus="focusChoose(this,'{{ form_field.name }}Remove','{{ form_field.name }}Choose')" onblur="blurSelect(this)" >
+                        {% for obj in m2m_objs %}
+                            {% if form_field.name in model_admin.readonly_field %}
+                                <option value="{{ obj.id }}" ondblclick="Move(this,'{{ form_field.name }}Remove','{{ form_field.name }}Choose')" disabled>{{ obj }}</option>
+                            {% else %}
+                                <option value="{{ obj.id }}" ondblclick="Move(this,'{{ form_field.name }}Remove','{{ form_field.name }}Choose')" >{{ obj }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <ul class="col-md-1" style="margin-top: 85px;">
+                    <li style="background-color: grey;color: white;border-radius: 50%;text-align: center;width: 20px;margin-bottom:15px;" id="{{ form_field.name }}Choose">
+                        <span class="glyphicon glyphicon-arrow-right"></span>
+                    </li>
+                    <li style="background-color: grey;color: white;border-radius: 50%;text-align: center;width: 20px;" id="{{ form_field.name }}Remove">
+                        <span class="glyphicon glyphicon-arrow-left"></span>
+                    </li>
+                </ul>
+                {% bulid_m2m model_admin form_field nid 'true' as m2m_chosen_objs %}
+                <div class="col-md-5" style="padding-right: 0px;" >
+                    <select name="{{ form_field.name }}" tag="{{ form_field.name }}Remove" multiple class="select_option" sel="true" onfocus="focusRemove(this,'{{ form_field.name }}Choose','{{ form_field.name }}Remove')" onblur="blurSelect(this)">
+                        {% for obj in m2m_chosen_objs %}
+                            {% if form_field.name in model_admin.readonly_field %}
+                                <option value="{{ obj.id }}" ondblclick="Move(this,'{{ form_field.name }}Choose','{{ form_field.name }}Remove')" disabled>{{ obj }}</option>
+                            {% else %}
+                                <option value="{{ obj.id }}" ondblclick="Move(this,'{{ form_field.name }}Choose','{{ form_field.name }}Remove')">{{ obj }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            {% else %}
+                {{ form_field }}
+            {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+      <div class="form-group">
+              <div class="col-sm-8">
+                  {% if not model_admin.readonly_table %}
+                      {% block delete_tag %}<a href="{% url 'model_delete' app_name class_name nid %}" class="btn btn-danger">Delete</a>{% endblock %}
+                      <button type="submit" class="btn btn-info"  style="float: right;" onclick="selectAll()">Save</button>
+                  {% else %}
+                      <a href="{% url 'model_manage' app_name class_name %}" class="btn btn-success">回到{{ class_name }}表</a>
+                  {% endif %}
+              </div>
+      </div>
+    </form>
+   </div>
+{% endblock %}
+{% block selfScript %}
+    <script>
+        function Move(self,target_id,from_id){
+            var target_ele = $('select[tag='+target_id+']');
+            $(self).attr('ondblclick','Move(this,'+'"'+from_id+'"'+','+'"'+target_id+'"'+')');
+            $(self).appendTo(target_ele);
+        }
+        function selectAll() {
+            $('select[sel="true"]').children('option').each(function () {
+                $(this).prop('selected','true');
+            });
+        }
+        function focusChoose(self,target_id,from_id) {
+            var len = $(self).children().length;
+            if (len>0){
+                var target = $(self).attr('tag');
+                $('#'+target).addClass('active').click(function () {
+                   $(self).children('option:selected').each(function () {
+                       Move($(this),target_id,from_id)
+                   });
+                    $('#'+target).removeClass('active')
+                });
+            }
+        }
+        function focusRemove(self,target_id,from_id) {
+            var len = $(self).children().length;
+            if (len>0){
+                var target = $(self).attr('tag');
+                $('#'+target).addClass('active').click(function () {
+                   $(self).children('option:selected').each(function () {
+                       Move($(this),target_id,from_id)
+                   });
+                   $('#'+target).removeClass('active')
+                });
+            }
+        }
+        function blurSelect(self) {
+            var target = $(self).attr('tag');
+            $('#'+target).removeClass('active')
+        }
+
+        function upLoadData(self) {
+            $(self).find(':disabled').each(function () {
+               $(this).prop('disabled',false)
+            });
+            return true
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load my_tags %}
+{% block head %}
+    <style>
+        .selected-background {
+            background-color: lightyellow!important;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-8" >
+             <div class="panel panel-success">
+              <!-- Default panel contents -->
+              <div class="panel-heading">
+                  <h4>{% bulid_obj_meta model_admin %}
+                      {% if not model_admin.readonly_table %}
+                      <a href="{% url 'model_add' app_name class_name %}" class="btn btn-primary" style="float: right;line-height: 12px;">
+                          <span class="glyphicon glyphicon-plus"></span>添加
+                      </a>
+                      {% endif %}
+                  </h4>
+              </div>
+              <div class="panel-body">
+                  <form action="" class="form-inline">
+                      <div class="form-group">
+                          <div class="input-group">
+                            <div class="input-group-addon"><span class="glyphicon glyphicon-search"></span></div>
+                            <input type="search" class="form-control" name="query"  style="width: 300px;" >
+                            {% bulid_action_to_view request %}
+                          </div>
+                          <input type="submit" value="检索" class="btn btn-success">
+                      </div>
+                  </form>
+              </div>
+             <div class="panel-body">
+                <form action="{% url 'model_manage' app_name class_name %}" class="form-inline" method="post" >
+                {% csrf_token %}
+                      <div class="form-group">
+                          <label>Action:
+                              <select name="action" id="" class="form-control">
+                                        <option value="" selected>--------------------------------</option>
+                                     {% for action in model_admin.action %}
+                                         <option value="{{ action }}">{% action_display_name model_admin action %}</option>
+                                     {% endfor %}
+                              </select>
+                              <input type="submit" class="btn btn-default" onclick="actionChoose()" value="Go">
+                          </label>
+                          <div id="query_set"></div>
+                      </div>
+                </form>
+             </div>
+             <table class="table table-hover">
+                <thead>
+                        <td style="width: 100px;" ><input type="checkbox" onclick="checkAll(this)"></td>
+                        {% bulid_table_field request model_admin model_obj order_key %}
+                </thead>
+                <tbody>
+                        {% bulid_table_field request model_admin  model_obj order_key 'show_data' %}
+                </tbody>
+                        {% ret_range_num request model_admin query_set as paginator %}
+                <tfoot>
+                        <tr>
+                            <td></td>
+                            <td>总共有{{ query_set.count }}条记录</td>
+                        </tr>
+                </tfoot>
+            </table>
+              <ul class="pagination">
+                <li>
+                  <a href="?page={% prepage request %}">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                </li>
+                {% for page in paginator %}
+                    {% current_page request as current_pg %}
+                    {% if page == current_pg %}
+                        <li><a href="?page={{ page }}{% build_page_num_link request %}" class="btn btn-primary active" >{{ page }}</a></li>
+                    {% else %}
+                        <li><a href="?page={{ page }}{% build_page_num_link request %}" class="btn btn-primary" >{{ page }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                <li>
+                   <a href="?page={% nextpage request model_admin query_set %}">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+        </div>
+        <div class="col-md-3">
+            {% for obj in model_admin.list_filter %}
+            <div class="panel panel-primary">
+              <!-- Default panel contents -->
+                <div class="panel-heading">By {{ obj }}</div>
+                <div class="list-group">
+                  {% bulid_tag_for_list_filter model_admin obj request %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+{% block selfScript %}
+    <script>
+        var allTableCheckbox = $("table tbody tr td input[type=checkbox]");
+        function checkAll(self) {
+            isCheckAll = $(self).prop('checked');
+            if(isCheckAll){
+                allTableCheckbox.each(function () {
+                    $(this).prop('checked',true);
+                    $(this).parent('td').parent('tr').addClass('selected-background');
+                });
+            }else{
+                allTableCheckbox.each(function () {
+                    $(this).prop('checked',false);
+                    $(this).parent('td').parent('tr').removeClass('selected-background');
+                });
+            }
+        }
+        function checkInput(self) {
+            $(self).click(function(){
+                var is_checked = $(this).prop('checked');
+                if (is_checked){
+                    $(this).parent('td').parent('tr').addClass('selected-background');
+                    if($("table tbody tr td input:checked").length == allTableCheckbox.length){
+                    $("table thead tr td input[type=checkbox]").prop('checked',true)
+                    }
+                }
+                else {
+                    $(this).parent('td').parent('tr').removeClass('selected-background');
+                    var check = $("table thead tr td input[type=checkbox]");
+                    if(check.prop('checked')){
+                        check.prop('checked',false)
+                    }
+                }
+            })
+        }
+        allTableCheckbox.each(function(){
+            checkInput($(this));
+        });
+        function actionChoose() {
+            allTableCheckbox.each(function () {
+                var isChecked = $(this).prop('checked');
+                if(isChecked){
+                    $(this).appendTo($('#query_set'))
+                }
+            return true
+            })
+        }
+    </script>
+{% endblock %}
