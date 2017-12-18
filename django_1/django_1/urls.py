@@ -15,10 +15,9 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
-from django_day1 import views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     # url(r'^blog/(?P<username>\w*)/(?P<page>\d{4})/$', views.test_view),
-    url(r'^account/', include('django_day1.urls'))
+    url(r'^account/', include('my_admin.urls'))
 ]

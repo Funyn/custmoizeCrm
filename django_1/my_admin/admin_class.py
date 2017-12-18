@@ -1,7 +1,7 @@
 # coding:utf-8
 from django.db.models.base import ModelBase
 from django_day1 import models
-from django.shortcuts import HttpResponse, render
+from django.shortcuts import render
 
 
 enabled_admin = []
@@ -48,7 +48,7 @@ class BaseAdmin:
     def delete_select_member(self,request,query_set):
         app_name = self.model._meta.app_label
         class_name = self.model._meta.model_name
-        return render(request,'action_delete.html',{'models':query_set,
+        return render(request, 'admin/action_delete.html', {'models':query_set,
                                                         "app_name":app_name,
                                                         "class_name":class_name})
     delete_select_member.display_name = '删除所选字段'
